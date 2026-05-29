@@ -1120,7 +1120,10 @@ function updateCategoriasModal() {
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   if(id==='modal-transacao'&&!editingId){
-    const today=new Date(); document.getElementById('t-data').value=today.toISOString().split('T')[0];
+    const today = new Date();
+    let y = today.getFullYear(), m = today.getMonth() + 1, d = today.getDate();
+    if (state.currentYear !== y || state.currentMonth !== m) { y = state.currentYear; m = state.currentMonth; d = 1; }
+    document.getElementById('t-data').value = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     ['t-desc','t-obs'].forEach(f=>document.getElementById(f).value='');
     document.getElementById('t-valor').value=''; document.getElementById('t-tipo').value='Saída'; updateCategoriasModal();
   }
@@ -1147,6 +1150,15 @@ function salvarTransacao() {
   if(!data||!desc||valor<=0){showToast('Preencha data, descrição e valor!','error');return;}
   if(editingId){const idx=state.transacoes.findIndex(t=>t.id===editingId);if(idx>=0)state.transacoes[idx]={id:editingId,data,desc,cat,tipo,valor,pag,obs};}
   else{state.transacoes.push({id:uid(),data,desc,cat,tipo,valor,pag,obs});}
+  
+  const [ty, tm] = data.split('-');
+  state.currentYear = parseInt(ty, 10);
+  state.currentMonth = parseInt(tm, 10);
+  const lbl = getMonthLabel();
+  document.getElementById('monthDisplay').textContent = lbl;
+  const tbMonth = document.getElementById('topbar-month');
+  if(tbMonth) tbMonth.textContent = lbl;
+
   saveState(); closeModal('modal-transacao'); showToast('Lançamento salvo! ✅','success'); renderView(currentView);
 }
 function editarTransacao(id) {
